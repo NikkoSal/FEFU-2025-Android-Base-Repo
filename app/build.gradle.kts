@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+    implementation("com.google.accompanist:accompanist-flowlayout:0.30.1")
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
