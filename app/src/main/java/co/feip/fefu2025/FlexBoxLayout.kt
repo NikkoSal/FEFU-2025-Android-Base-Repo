@@ -18,9 +18,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     private val paddingVertical: Int = context.resources.getDimensionPixelSize(R.dimen.paddingVertical)
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val widthMode = MeasureSpec.getMode(widthMeasureSpec)
         val widthSize = MeasureSpec.getSize(widthMeasureSpec)
-        val heightMode = MeasureSpec.getMode(heightMeasureSpec)
 
         var totalWidth = 0
         var totalHeight = 0
@@ -59,13 +57,14 @@ class FlexBoxLayout @JvmOverloads constructor(
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        var lineWidth = 0
-        var lineHeight = 0
-        var currentTop = paddingVertical
-        var currentLeft = paddingHorizontal
-
         val availableWidth = width - paddingHorizontal * 2
         val childCount = childCount
+
+        var currentTop = paddingVertical
+        var lineHeight = 0
+
+        var lineViews = mutableListOf<View>()
+        var lineWidth = 0
 
         for (i in 0 until childCount) {
             val child = getChildAt(i)
@@ -73,23 +72,47 @@ class FlexBoxLayout @JvmOverloads constructor(
 
             val childWidth = child.measuredWidth
             val childHeight = child.measuredHeight
+            val spacing = if (lineViews.isNotEmpty()) itemSpacing else 0
 
-            if (lineWidth + childWidth + (if (lineWidth > 0) itemSpacing else 0) > availableWidth) {
+            if (lineWidth + childWidth + spacing > availableWidth) {
+                layoutLine(lineViews, lineWidth, currentTop, lineHeight, availableWidth)
+
                 currentTop += lineHeight + lineSpacing
-                currentLeft = paddingHorizontal
+                lineViews.clear()
                 lineWidth = 0
                 lineHeight = 0
             }
 
-            child.layout(
+            lineViews.add(child)
+            lineWidth += childWidth + spacing
+            lineHeight = max(lineHeight, childHeight)
+        }
+
+        if (lineViews.isNotEmpty()) {
+            layoutLine(lineViews, lineWidth, currentTop, lineHeight, availableWidth)
+        }
+    }
+
+    private fun layoutLine(
+        lineViews: List<View>,
+        lineWidth: Int,
+        top: Int,
+        lineHeight: Int,
+        availableWidth: Int
+    ) {
+        var currentLeft = paddingHorizontal + (availableWidth - lineWidth) / 2
+
+        for ((index, view) in lineViews.withIndex()) {
+            val childWidth = view.measuredWidth
+            val childHeight = view.measuredHeight
+
+            view.layout(
                 currentLeft,
-                currentTop,
+                top,
                 currentLeft + childWidth,
-                currentTop + childHeight
+                top + childHeight
             )
 
-            lineWidth += childWidth + (if (lineWidth > 0) itemSpacing else 0)
-            lineHeight = max(lineHeight, childHeight)
             currentLeft += childWidth + itemSpacing
         }
     }

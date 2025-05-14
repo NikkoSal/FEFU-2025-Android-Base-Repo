@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">FEFU 2025 Android Base repo</string>
     <string name="default_genre_name">Жанр</string>
+    <string name="genres_label">Жанры</string>
+    <string name="description_label">Описание</string>
+    <string name="rating_description">Рейтинг</string>
+    <string name="year_label">г.</string>
+    <string name="episodes_label">эп.</string>
+
 </resources>
