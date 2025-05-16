@@ -3,7 +3,6 @@ package co.feip.fefu2025
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,11 +32,15 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 
 @Composable
 fun AnimeCard(
     data: AnimeCardData,
     modifier: Modifier = Modifier
+        .width(160.dp)
+        .height(250.dp)
 ) {
     Card(
         modifier = modifier,
@@ -53,11 +56,11 @@ fun AnimeCard(
         ) {
             Text(
                 text = data.title,
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 maxLines = 2,
+                minLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center
             )
@@ -83,7 +86,9 @@ fun AnimeCard(
             )
 
             FlowRow(
-                modifier = Modifier.padding(top = 6.dp),
+                modifier = Modifier
+                    .padding(top = 6.dp)
+                    .heightIn(max = 80.dp),
                 mainAxisSpacing = 4.dp,
                 crossAxisSpacing = 4.dp
             ) {

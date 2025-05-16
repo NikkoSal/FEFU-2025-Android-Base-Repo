@@ -28,6 +28,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import co.feip.fefu2025.ui.components.RatingChart
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun AnimeDetailScreen(
@@ -36,6 +39,7 @@ fun AnimeDetailScreen(
 ) {
     Column(
         modifier = modifier
+            .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -116,8 +120,40 @@ fun AnimeDetailScreen(
             RatingInfo(rating = anime.formattedRating)
             YearInfo(year = anime.year)
         }
+
+        RatingChart(
+            ratings = anime.ratingDistribution,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp)
+        )
+        Text(
+            text = "Может понравиться",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp, bottom = 8.dp)
+                .wrapContentWidth(Alignment.CenterHorizontally),
+            style = MaterialTheme.typography.titleMedium.copy(
+                textAlign = TextAlign.Center
+            ),
+            fontWeight = FontWeight.SemiBold
+        )
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(anime.recommendations) { recommendation ->
+                AnimeCard(
+                    data = recommendation,
+                    modifier = Modifier.width(160.dp)
+                )
+            }
+        }
     }
 }
+
 
 
 @Composable
@@ -257,17 +293,92 @@ private fun adjustAlpha(color: Color, factor: Float): Color {
 @Composable
 private fun AnimeDetailScreenPreview() {
     MaterialTheme {
-        Surface {
+        Surface(modifier = Modifier.fillMaxSize()) {
             AnimeDetailScreen(
                 anime = AnimeDetailsUiModel(
                     imageRes = R.drawable.pic,
                     title = "Вечная воля",
                     genreNames = listOf("Романтика", "Боевик", "Экшн"),
-                    description = "Бай Сяоцюань рос без родителей в маленькой деревне и всегда стремился к чему-то большему. " +
-                            "Его амбиции простирались до желания вечной жизни. ",
-                    formattedRating = "5",
+                    description = "Бай Сяоцюань рос без родителей в маленькой деревне и всегда стремился к чему-то большему...",
+                    formattedRating = "5.0",
                     year = "2025",
-                    formattedEpisodes = "1"
+                    formattedEpisodes = "1",
+                    ratingDistribution = mapOf(
+                        1 to 100, 2 to 50, 3 to 200, 4 to 150, 5 to 1000,
+                        6 to 250, 7 to 400, 8 to 350, 9 to 450, 10 to 244
+                    ),
+                    recommendations = listOf(
+                        AnimeCardData(
+                            imageRes = R.drawable.pic,
+                            title = "Бойцовский клуб любви",
+                            genreNames = listOf("Романтика", "Боевик"),
+                            rating = 8.7f,
+                            episodes = 12
+                        ),
+                        AnimeCardData(
+                            imageRes = R.drawable.pic,
+                            title = "Тайны алой ночи",
+                            genreNames = listOf("Мистика", "Экшн"),
+                            rating = 8.9f,
+                            episodes = 13
+                        ),
+                        AnimeCardData(
+                            imageRes = R.drawable.pic,
+                            title = "Комедийный взрыв",
+                            genreNames = listOf("Комедия", "Экшн"),
+                            rating = 8.1f,
+                            episodes = 10
+                        ),
+                        AnimeCardData(
+                            imageRes = R.drawable.pic,
+                            title = "Любовь и кулаки",
+                            genreNames = listOf("Романтика", "Экшн"),
+                            rating = 8.5f,
+                            episodes = 24
+                        ),
+                        AnimeCardData(
+                            imageRes = R.drawable.pic,
+                            title = "Магия розовой луны",
+                            genreNames = listOf("Мистика", "Романтика"),
+                            rating = 9.0f,
+                            episodes = 11
+                        ),
+                        AnimeCardData(
+                            imageRes = R.drawable.pic,
+                            title = "Смех в бою",
+                            genreNames = listOf("Комедия", "Боевик"),
+                            rating = 8.2f,
+                            episodes = 13
+                        ),
+                        AnimeCardData(
+                            imageRes = R.drawable.pic,
+                            title = "Танец клинка",
+                            genreNames = listOf("Экшн", "Боевик"),
+                            rating = 8.8f,
+                            episodes = 26
+                        ),
+                        AnimeCardData(
+                            imageRes = R.drawable.pic,
+                            title = "Сердце комедии",
+                            genreNames = listOf("Комедия", "Романтика"),
+                            rating = 7.9f,
+                            episodes = 12
+                        ),
+                        AnimeCardData(
+                            imageRes = R.drawable.pic,
+                            title = "Битва чувств",
+                            genreNames = listOf("Боевик", "Романтика"),
+                            rating = 8.4f,
+                            episodes = 14
+                        ),
+                        AnimeCardData(
+                            imageRes = R.drawable.pic,
+                            title = "Темная сцена",
+                            genreNames = listOf("Мистика", "Экшн"),
+                            rating = 8.6f,
+                            episodes = 16
+                        )
+                    )
                 )
             )
         }
