@@ -7,5 +7,7 @@ data class AnimeDetailsUiModel(
     val description: String,
     val formattedRating: String,
     val year: String,
-    val formattedEpisodes: String
+    val formattedEpisodes: String,
+    val ratingDistribution: Map<Int, Int>,
+    val recommendations: List<AnimeCardData>
 )
