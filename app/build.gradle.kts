@@ -41,6 +41,9 @@ android {
 }
 
 dependencies {
+    implementation ("androidx.navigation:navigation-compose:2.7.7")
+    implementation ("androidx.compose.runtime:runtime-livedata:1.5.0")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("com.google.accompanist:accompanist-flowlayout:0.30.1")
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

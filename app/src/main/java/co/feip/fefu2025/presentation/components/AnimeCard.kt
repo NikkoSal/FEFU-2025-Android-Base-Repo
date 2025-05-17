@@ -1,4 +1,4 @@
-package co.feip.fefu2025
+package co.feip.fefu2025.presentation.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,6 +34,10 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import co.feip.fefu2025.domain.model.AnimeCardData
+import co.feip.fefu2025.utils.Genres
+import co.feip.fefu2025.R
+
 
 @Composable
 fun AnimeCard(
@@ -167,9 +171,9 @@ private fun RatingBar(
 }
 
 
-@Preview(showBackground = true)
+@Preview
 @Composable
-private fun PreviewAnimeCard() {
+fun PreviewAnimeCard() {
     MaterialTheme {
         AnimeCard(
             data = AnimeCardData(

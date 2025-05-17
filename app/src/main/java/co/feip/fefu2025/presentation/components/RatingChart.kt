@@ -8,11 +8,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlin.math.max
 import androidx.compose.ui.draw.clip
-
+import co.feip.fefu2025.utils.RatingColors
 
 @Composable
 fun RatingChart(
@@ -20,19 +19,6 @@ fun RatingChart(
     modifier: Modifier = Modifier
 ) {
     val maxCount = max(ratings.values.maxOrNull() ?: 1, 1)
-
-    val ratingColors = listOf(
-        Color(0xFFFF0000),
-        Color(0xFFFF3300),
-        Color(0xFFFF6600),
-        Color(0xFFFF9900),
-        Color(0xFFFFCC00),
-        Color(0xFFCCFF00),
-        Color(0xFF99FF00),
-        Color(0xFF66FF00),
-        Color(0xFF33FF00),
-        Color(0xFF00FF00)
-    )
 
     Column(
         modifier = modifier
@@ -52,13 +38,11 @@ fun RatingChart(
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Bottom
-
-        )
-        {
+        ) {
             for (rating in 1..10) {
                 val count = ratings[rating] ?: 0
                 val heightRatio = count.toFloat() / maxCount
-                val color = ratingColors[rating - 1]
+                val color = RatingColors.list[rating - 1]
 
                 Box(
                     modifier = Modifier
