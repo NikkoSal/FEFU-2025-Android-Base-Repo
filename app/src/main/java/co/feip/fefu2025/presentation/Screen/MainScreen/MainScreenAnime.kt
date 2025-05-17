@@ -1,5 +1,6 @@
-package co.feip.fefu2025
+package co.feip.fefu2025.presentation.Screen.MainScreen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -12,16 +13,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.WindowInsets
+import co.feip.fefu2025.domain.model.AnimeCardData
+import co.feip.fefu2025.presentation.components.AnimeCard
+import co.feip.fefu2025.presentation.details.MainViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 
 @Composable
 fun MainAnimeScreen(
-    animeList: List<AnimeCardData>,
-    modifier: Modifier = Modifier
+    viewModel: MainViewModel = viewModel(),
+    onAnimeClick: (Int) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    val animeList = viewModel.animeList
 
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp),
@@ -66,7 +72,6 @@ fun MainAnimeScreen(
                 }
             }
         },
-        modifier = modifier
     ) { innerPadding ->
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -82,94 +87,24 @@ fun MainAnimeScreen(
         ) {
             items(animeList) { anime ->
                 AnimeCard(
-                    data = anime,
+                    data = AnimeCardData(
+                        id = anime.id,
+                        imageRes = anime.imageRes,
+                        title = anime.title,
+                        genreNames = anime.genreNames,
+                        rating = anime.formattedRating.toFloatOrNull() ?: 0f,
+                        episodes = anime.formattedEpisodes?.toIntOrNull()
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable { onAnimeClick(anime.id) }
                 )
             }
+
         }
     }
 }
 
 
 
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    val sampleList = listOf(
-        AnimeCardData(
-            imageRes = R.drawable.pic,
-            title = "Бойцовский клуб любви",
-            genreNames = listOf("Романтика", "Боевик"),
-            rating = 8.7f,
-            episodes = 12
-        ),
-        AnimeCardData(
-            imageRes = R.drawable.pic,
-            title = "Тайны алой ночи",
-            genreNames = listOf("Мистика", "Экшн"),
-            rating = 8.9f,
-            episodes = 13
-        ),
-        AnimeCardData(
-            imageRes = R.drawable.pic,
-            title = "Комедийный взрыв",
-            genreNames = listOf("Комедия", "Экшн"),
-            rating = 8.1f,
-            episodes = 10
-        ),
-        AnimeCardData(
-            imageRes = R.drawable.pic,
-            title = "Любовь и кулаки",
-            genreNames = listOf("Романтика", "Экшн"),
-            rating = 8.5f,
-            episodes = 24
-        ),
-        AnimeCardData(
-            imageRes = R.drawable.pic,
-            title = "Магия розовой луны",
-            genreNames = listOf("Мистика", "Романтика"),
-            rating = 9.0f,
-            episodes = 11
-        ),
-        AnimeCardData(
-            imageRes = R.drawable.pic,
-            title = "Смех в бою",
-            genreNames = listOf("Комедия", "Боевик"),
-            rating = 8.2f,
-            episodes = 13
-        ),
-        AnimeCardData(
-            imageRes = R.drawable.pic,
-            title = "Танец клинка",
-            genreNames = listOf("Экшн", "Боевик"),
-            rating = 8.8f,
-            episodes = 26
-        ),
-        AnimeCardData(
-            imageRes = R.drawable.pic,
-            title = "Сердце комедии",
-            genreNames = listOf("Комедия", "Романтика"),
-            rating = 7.9f,
-            episodes = 12
-        ),
-        AnimeCardData(
-            imageRes = R.drawable.pic,
-            title = "Битва чувств",
-            genreNames = listOf("Боевик", "Романтика"),
-            rating = 8.4f,
-            episodes = 14
-        ),
-        AnimeCardData(
-            imageRes = R.drawable.pic,
-            title = "Темная сцена",
-            genreNames = listOf("Мистика", "Экшн"),
-            rating = 8.6f,
-            episodes = 16
-        )
-    )
 
-    MaterialTheme {
-        MainAnimeScreen(animeList = sampleList)
-    }
-}
