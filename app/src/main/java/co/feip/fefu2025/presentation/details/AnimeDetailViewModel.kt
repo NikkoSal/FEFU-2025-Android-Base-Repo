@@ -1,4 +1,4 @@
-package co.feip.fefu2025.presentation.detail
+package co.feip.fefu2025.presentation.details
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
