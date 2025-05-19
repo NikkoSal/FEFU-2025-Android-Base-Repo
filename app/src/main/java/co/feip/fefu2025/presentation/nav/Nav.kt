@@ -12,7 +12,10 @@ import co.feip.fefu2025.data.repository.MockAnimeRepository
 import co.feip.fefu2025.domain.usecase.GetAnimeDetailUseCase
 import co.feip.fefu2025.domain.usecase.GetAnimeListUseCase
 import co.feip.fefu2025.presentation.details.MainViewModel
-import co.feip.fefu2025.presentation.detail.AnimeDetailViewModel
+import co.feip.fefu2025.presentation.details.AnimeDetailViewModel
+import co.feip.fefu2025.presentation.Screen.RecomendationList.RecommendationListScreen
+import androidx.navigation.navDeepLink
+
 
 @Composable
 fun Nav(modifier: Modifier = Modifier) {
@@ -41,13 +44,27 @@ fun Nav(modifier: Modifier = Modifier) {
 
         composable(
             route = "anime/{animeId}",
-            arguments = listOf(navArgument("animeId") { type = NavType.IntType })
+            arguments = listOf(navArgument("animeId") { type = NavType.IntType }),
+            deepLinks = listOf(
+                navDeepLink {
+                    uriPattern = "mysuperapp://anime/{animeId}"
+                }
+            )
         ) { backStackEntry ->
             val animeId = backStackEntry.arguments?.getInt("animeId") ?: return@composable
             val detailViewModelFactory = AnimeDetailViewModel.Factory(detailUseCase, animeId)
             AnimeScreen(
                 animeId = animeId,
                 viewModelFactory = detailViewModelFactory,
+                onAnimeClick = { id -> navController.navigate("anime/$id") },
+                onRecommendationsClick = { navController.navigate("recommendations") },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable("recommendations") {
+            RecommendationListScreen(
+                onBackClick = { navController.popBackStack() },
                 onAnimeClick = { id -> navController.navigate("anime/$id") }
             )
         }

@@ -33,33 +33,29 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.clickable
 import co.feip.fefu2025.FlexBoxLayout
 import co.feip.fefu2025.utils.Genres
-import co.feip.fefu2025.presentation.detail.AnimeDetailViewModel
-import androidx.compose.foundation.layout.Box
+import co.feip.fefu2025.presentation.details.AnimeDetailViewModel
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import co.feip.fefu2025.R
 import co.feip.fefu2025.domain.model.Anime
 import co.feip.fefu2025.presentation.components.AnimeCard
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 @Composable
 fun AnimeScreen(
     animeId: Int,
     viewModelFactory: AnimeDetailViewModel.Factory,
-    onAnimeClick: (Int) -> Unit
+    onAnimeClick: (Int) -> Unit,
+    onBackClick: () -> Unit,
+    onRecommendationsClick: () -> Unit
 ) {
     val viewModel: AnimeDetailViewModel = viewModel(factory = viewModelFactory)
     val anime by viewModel.anime
 
     if (anime != null) {
-        AnimeDetailScreen(anime!!, onAnimeClick)
-    } else {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("Загрузка...")
-        }
+        AnimeDetailScreen(anime!!, onAnimeClick, onRecommendationsClick, onBackClick)
     }
 }
 
@@ -68,6 +64,8 @@ fun AnimeScreen(
 fun AnimeDetailScreen(
     anime: Anime,
     onAnimeClick: (Int) -> Unit,
+    onRecommendationsClick: () -> Unit,
+    onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -77,13 +75,30 @@ fun AnimeDetailScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = anime.title,
-            modifier = Modifier.padding(top = 16.dp),
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = anime.title,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+
+            IconButton(
+                onClick = onBackClick,
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Назад"
+                )
+            }
+        }
+
 
         anime.formattedEpisodes?.let { episodes ->
             EpisodesInfo(
@@ -170,30 +185,61 @@ fun AnimeDetailScreen(
         }
 
         anime.recommendations?.takeIf { it.isNotEmpty() }?.let { recommendations ->
-            Text(
-                text = "Может понравиться",
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 24.dp, bottom = 8.dp)
-                    .wrapContentWidth(Alignment.CenterHorizontally),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    textAlign = TextAlign.Center
-                ),
-                fontWeight = FontWeight.SemiBold
-            )
-
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
+                    .padding(top = 24.dp)
             ) {
-                items(recommendations) { rec ->
-                    AnimeCard(
-                        data = rec,
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                        .clickable(onClick = onRecommendationsClick),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
-                            .clickable { rec.id?.let { onAnimeClick(it) } }
-                            .width(160.dp)
+                            .padding(end = 6.dp)
+                            .size(20.dp)
                     )
+
+                    Text(
+                        text = "Может понравиться",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Смотреть все рекомендации",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .padding(start = 6.dp)
+                            .size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(recommendations) { rec ->
+                        AnimeCard(
+                            data = rec,
+                            modifier = Modifier
+                                .clickable { rec.id?.let { onAnimeClick(it) } }
+                                .width(160.dp)
+                        )
+                    }
                 }
             }
         }
