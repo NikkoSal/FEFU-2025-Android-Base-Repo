@@ -15,17 +15,24 @@ import co.feip.fefu2025.presentation.details.MainViewModel
 import co.feip.fefu2025.presentation.details.AnimeDetailViewModel
 import co.feip.fefu2025.presentation.Screen.RecomendationList.RecommendationListScreen
 import androidx.navigation.navDeepLink
+import co.feip.fefu2025.presentation.details.SearchViewModel
+import co.feip.fefu2025.presentation.Screen.SearchScreens.SearchScreen
 
 
 @Composable
 fun Nav(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
-    val repository = MockAnimeRepository()
+    val repository = MockAnimeRepository(failEnabled = true)
+
+    val safeRepository = MockAnimeRepository(failEnabled = false)
     val listUseCase = GetAnimeListUseCase(repository)
     val detailUseCase = GetAnimeDetailUseCase(repository)
 
     val mainViewModelFactory = MainViewModel.Factory(listUseCase)
+
+    val searchUseCase = GetAnimeListUseCase(safeRepository)
+    val searchViewModelFactory = SearchViewModel.Factory(searchUseCase)
 
     NavHost(
         navController = navController,
@@ -38,6 +45,9 @@ fun Nav(modifier: Modifier = Modifier) {
                 viewModel = mainViewModel,
                 onAnimeClick = { animeId ->
                     navController.navigate("anime/$animeId")
+                },
+                onSearchClick = {
+                    navController.navigate("search")
                 }
             )
         }
@@ -64,6 +74,13 @@ fun Nav(modifier: Modifier = Modifier) {
 
         composable("recommendations") {
             RecommendationListScreen(
+                onBackClick = { navController.popBackStack() },
+                onAnimeClick = { id -> navController.navigate("anime/$id") }
+            )
+        }
+        composable("search") {
+            SearchScreen(
+                viewModelFactory = searchViewModelFactory,
                 onBackClick = { navController.popBackStack() },
                 onAnimeClick = { id -> navController.navigate("anime/$id") }
             )

@@ -3,28 +3,33 @@ package co.feip.fefu2025.presentation.details
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.compose.runtime.*
-import co.feip.fefu2025.domain.model.Anime
 import co.feip.fefu2025.domain.usecase.GetAnimeListUseCase
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+
 
 class MainViewModel(private val getAnimeListUseCase: GetAnimeListUseCase) : ViewModel() {
 
-    private val fullList: List<Anime> = getAnimeListUseCase()
-
-    var searchQuery by mutableStateOf("")
+    var uiState by mutableStateOf<AnimeUiState>(AnimeUiState.Loading)
         private set
+    init {
+        loadAnime()
+    }
 
-    val animeList: List<Anime>
-        get() = if (searchQuery.isBlank()) {
-            fullList
-        } else {
-            fullList.filter { anime ->
-                anime.title.contains(searchQuery, ignoreCase = true)
+    fun loadAnime() {
+        uiState = AnimeUiState.Loading
+        viewModelScope.launch {
+            try {
+                val result = getAnimeListUseCase()
+                uiState = AnimeUiState.Success(result)
+            } catch (e: Exception) {
+                uiState = AnimeUiState.Error("Ошибка")
             }
         }
-
-    fun updateSearchQuery(query: String) {
-        searchQuery = query
     }
+
+
+
 
     class Factory(private val useCase: GetAnimeListUseCase) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
