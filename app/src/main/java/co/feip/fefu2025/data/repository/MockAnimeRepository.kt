@@ -4,9 +4,14 @@ import co.feip.fefu2025.R
 import co.feip.fefu2025.domain.model.Anime
 import co.feip.fefu2025.domain.repository.AnimeRepository
 import co.feip.fefu2025.domain.model.AnimeCardData
+import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 
-class MockAnimeRepository : AnimeRepository {
+class MockAnimeRepository(
+    var failEnabled: Boolean = true
+) : AnimeRepository {
+
     private val animeList = listOf(
         Anime(
             id = 1, //
@@ -93,7 +98,7 @@ class MockAnimeRepository : AnimeRepository {
         Anime(
             id = 7, //
             imageRes = R.drawable.pic, //
-            title = "Вечная воля", //
+            title = "foad", //
             genreNames = listOf("Романтика", "Боевик", "Экшн"), //
             description = "Бай Сяоцюань рос без родителей в маленькой деревне и всегда стремился к чему-то большему...", //
             formattedRating = "5.0", //
@@ -107,7 +112,7 @@ class MockAnimeRepository : AnimeRepository {
         Anime(
             id = 8, //
             imageRes = R.drawable.pic, //
-            title = "Вечная воля", //
+            title = "doad", //
             genreNames = listOf("Романтика", "Боевик", "Экшн"), //
             description = "Бай Сяоцюань рос без родителей в маленькой деревне и всегда стремился к чему-то большему...", //
             formattedRating = "5.0", //
@@ -121,7 +126,7 @@ class MockAnimeRepository : AnimeRepository {
         Anime(
             id = 9, //
             imageRes = R.drawable.pic, //
-            title = "Вечная воля", //
+            title = "load", //
             genreNames = listOf("Романтика", "Боевик", "Экшн"), //
             description = "Бай Сяоцюань рос без родителей в маленькой деревне и всегда стремился к чему-то большему...", //
             formattedRating = "5.0", //
@@ -153,16 +158,25 @@ class MockAnimeRepository : AnimeRepository {
         return animeList.filter { it.id in recommendationIds }
     }
 
-    override fun getAnimeList(): List<Anime> = animeList
+    override suspend fun getAnimeList(): List<Anime> {
+        delay(2000)
+        if (failEnabled && Random.nextBoolean()) {
+            throw RuntimeException("Ошибка")
+        }
+        return animeList
+    }
 
-    override fun getAnimeById(id: Int): Anime? {
+    override suspend fun getAnimeById(id: Int): Anime? {
+        delay(2000)
+        if (failEnabled && Random.nextBoolean()) {
+            throw RuntimeException("Ошибка")
+        }
         val anime = animeList.find { it.id == id }
 
         val recommendations = recommendationIds
             .filter { it != id }
             .mapNotNull { rid -> animeList.find { it.id == rid }?.toAnimeCardData() }
             .take(10)
-
         return anime?.copy(recommendations = recommendations)
     }
 

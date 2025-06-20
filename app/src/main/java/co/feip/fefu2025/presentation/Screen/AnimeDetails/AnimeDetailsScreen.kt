@@ -35,13 +35,13 @@ import co.feip.fefu2025.FlexBoxLayout
 import co.feip.fefu2025.utils.Genres
 import co.feip.fefu2025.presentation.details.AnimeDetailViewModel
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import co.feip.fefu2025.R
 import co.feip.fefu2025.domain.model.Anime
 import co.feip.fefu2025.presentation.components.AnimeCard
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import co.feip.fefu2025.presentation.details.AnimeDetailUiState
 
 @Composable
 fun AnimeScreen(
@@ -52,12 +52,41 @@ fun AnimeScreen(
     onRecommendationsClick: () -> Unit
 ) {
     val viewModel: AnimeDetailViewModel = viewModel(factory = viewModelFactory)
-    val anime by viewModel.anime
+    val state = viewModel.uiState
 
-    if (anime != null) {
-        AnimeDetailScreen(anime!!, onAnimeClick, onRecommendationsClick, onBackClick)
+    when (state) {
+        is AnimeDetailUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color(0xFF4CAF50))
+            }
+        }
+
+        is AnimeDetailUiState.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = "Ошибка: не удалось загрузить детали аниме", color = Color.Red)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { viewModel.loadDetail() },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                    ) {
+                        Text("Повторить")
+                    }
+                }
+            }
+        }
+
+        is AnimeDetailUiState.Success -> {
+            AnimeDetailScreen(
+                anime = state.anime,
+                onAnimeClick = onAnimeClick,
+                onRecommendationsClick = onRecommendationsClick,
+                onBackClick = onBackClick
+            )
+        }
     }
 }
+
 
 
 @Composable
