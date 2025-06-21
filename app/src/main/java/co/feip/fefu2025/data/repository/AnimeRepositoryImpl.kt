@@ -9,9 +9,15 @@ import co.feip.fefu2025.domain.model.PaginatedData
 import co.feip.fefu2025.domain.repository.AnimeRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import co.feip.fefu2025.data.local.AnimeDao
+import kotlinx.coroutines.flow.Flow
+import co.feip.fefu2025.data.mapper.toFavoriteEntity
+import kotlinx.coroutines.flow.map
+import co.feip.fefu2025.data.local.AnimeFavoriteEntity
 
 class AnimeRepositoryImpl(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val animeDao: AnimeDao
 ) : AnimeRepository {
 
     override suspend fun getTopAnime(page: Int): Result<PaginatedData<AnimeCardData>> {
@@ -68,4 +74,35 @@ class AnimeRepositoryImpl(
             Result.failure(e)
         }
     }
+    override fun getFavoritesStream(): Flow<List<AnimeCardData>> {
+        return animeDao.getAllFavorites().map { entities ->
+            entities.map { it.toDomainCardData() }
+        }
+    }
+
+    override fun isFavoriteStream(animeId: Int): Flow<Boolean> {
+        return animeDao.getFavorite(animeId).map { it != null }
+    }
+
+    override suspend fun addToFavorites(anime: Anime) {
+        animeDao.addFavorite(anime.toFavoriteEntity())
+    }
+
+    override suspend fun removeFromFavorites(animeId: Int) {
+        animeDao.removeFavorite(animeId)
+    }
+    override suspend fun getFavoriteAnimeDetail(animeId: Int): Result<AnimeFavoriteEntity> {
+        return try {
+            val entity = animeDao.getFavoriteById(animeId)
+            if (entity != null) {
+                Result.success(entity)
+            } else {
+                Result.failure(Exception("Anime with id $animeId not found in favorites"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
+
+

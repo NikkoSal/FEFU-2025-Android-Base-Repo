@@ -47,7 +47,11 @@ import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import co.feip.fefu2025.utils.genreNameToColor
-
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun AnimeScreen(
@@ -58,6 +62,7 @@ fun AnimeScreen(
 ) {
 
     val state = viewModel.uiState
+    val isFavorite by viewModel.isFavorite.collectAsState()
 
     when (val currentState = state) {
         is AnimeDetailUiState.Loading -> {
@@ -84,6 +89,8 @@ fun AnimeScreen(
         is AnimeDetailUiState.Success -> {
             AnimeDetailScreen(
                 anime = currentState.anime,
+                isFavorite = isFavorite,
+                onToggleFavorite = { viewModel.onToggleFavorite() },
                 onAnimeClick = onAnimeClick,
                 onRecommendationsClick = onRecommendationsClick,
                 onBackClick = onBackClick
@@ -97,6 +104,8 @@ fun AnimeScreen(
 @Composable
 fun AnimeDetailScreen(
     anime: Anime,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
     onAnimeClick: (Int) -> Unit,
     onRecommendationsClick: () -> Unit,
     onBackClick: () -> Unit,
@@ -115,6 +124,7 @@ fun AnimeDetailScreen(
                 .padding(top = 16.dp),
             contentAlignment = Alignment.Center
         ) {
+
             Text(
                 text = anime.title,
                 style = MaterialTheme.typography.headlineMedium,
@@ -130,6 +140,28 @@ fun AnimeDetailScreen(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Назад"
                 )
+                Text(
+                    text = anime.title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 48.dp)
+                )
+                IconButton(
+                    onClick = onToggleFavorite,
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                ) {
+                    val icon =
+                        if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+                    val tint =
+                        if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = "Добавить в избранное",
+                        tint = tint
+                    )
+                }
             }
         }
 
