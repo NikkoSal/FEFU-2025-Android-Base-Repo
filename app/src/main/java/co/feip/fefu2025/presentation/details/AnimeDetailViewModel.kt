@@ -1,12 +1,11 @@
 package co.feip.fefu2025.presentation.details
 
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import co.feip.fefu2025.domain.model.Anime
 import co.feip.fefu2025.domain.usecase.GetAnimeDetailUseCase
-import androidx.lifecycle.viewModelScope
-import androidx.compose.runtime.*
 import kotlinx.coroutines.launch
 
 sealed class AnimeDetailUiState {
@@ -27,22 +26,20 @@ class AnimeDetailViewModel(
         loadDetail()
     }
 
-    fun loadDetail() {
+    fun retryLoad() {
+        loadDetail()
+    }
+    private fun loadDetail() {
         uiState = AnimeDetailUiState.Loading
         viewModelScope.launch {
-            try {
-                val result = getAnimeDetailUseCase(animeId)
-                uiState = if (result != null) {
-                    AnimeDetailUiState.Success(result)
-                } else {
-                    AnimeDetailUiState.Error("Ошибка")
+            getAnimeDetailUseCase(animeId)
+                .onSuccess { anime ->
+                    uiState = AnimeDetailUiState.Success(anime)
                 }
-            } catch (e: Exception) {
-                uiState = AnimeDetailUiState.Error(e.message ?: "Ошибка")
-            }
+                .onFailure { exception ->
+                    uiState = AnimeDetailUiState.Error(exception.message ?: "An unknown error occurred") }
         }
     }
-
     class Factory(
         private val getAnimeDetailUseCase: GetAnimeDetailUseCase,
         private val animeId: Int
