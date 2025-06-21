@@ -4,6 +4,9 @@ import co.feip.fefu2025.data.remote.dto.AnimeDataDto
 import co.feip.fefu2025.data.remote.dto.RecommendationEntryDto
 import co.feip.fefu2025.domain.model.Anime
 import co.feip.fefu2025.domain.model.AnimeCardData
+import co.feip.fefu2025.data.local.AnimeFavoriteEntity
+
+
 
 fun AnimeDataDto.toDomainModel(): Anime {
     return Anime(
@@ -40,5 +43,27 @@ fun RecommendationEntryDto.toDomainCardData(): AnimeCardData {
         genreNames = animeDto.genres?.mapNotNull { it.name } ?: emptyList(),
         rating = animeDto.score ?: 0.0,
         episodes = animeDto.episodes
+    )
+}
+
+
+fun Anime.toFavoriteEntity(): AnimeFavoriteEntity {
+    return AnimeFavoriteEntity(
+        id = this.id,
+        title = this.title,
+        description = this.description,
+        imageUrl = this.imageUrl
+    )
+}
+
+
+fun AnimeFavoriteEntity.toDomainCardData(): AnimeCardData {
+    return AnimeCardData(
+        id = this.id,
+        title = this.title,
+        imageUrl = this.imageUrl,
+        genreNames = emptyList(),
+        rating = 0.0,
+        episodes = null
     )
 }

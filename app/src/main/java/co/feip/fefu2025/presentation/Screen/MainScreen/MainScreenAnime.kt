@@ -19,14 +19,15 @@ import androidx.compose.ui.unit.dp
 import co.feip.fefu2025.presentation.details.UiState
 import co.feip.fefu2025.presentation.components.AnimeCard
 import co.feip.fefu2025.presentation.details.MainViewModel
-
+import androidx.compose.material.icons.filled.Favorite
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainAnimeScreen(
     viewModel: MainViewModel,
     onAnimeClick: (Int) -> Unit,
-    onSearchClick: () -> Unit
+    onSearchClick: () -> Unit,
+    onFavoritesClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -34,37 +35,46 @@ fun MainAnimeScreen(
 
     Scaffold(
         topBar = {
-            // ВАШ КОД TOPBAR - НЕ ТРОГАЕМ
             Surface(shadowElevation = 4.dp) {
-                Column {
-                    Box(
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .clickable { onSearchClick() },
+                            .weight(1f)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .clickable { onSearchClick() }
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    color = MaterialTheme.colorScheme.surfaceVariant,
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .padding(horizontal = 16.dp, vertical = 12.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Поиск...",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Поиск",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Поиск",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    IconButton(onClick = onFavoritesClick) {
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = "Избранное",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -102,12 +112,11 @@ fun MainAnimeScreen(
             }
 
             is UiState.Success -> {
-                // ВАШ КОД SUCCESS - ДОБАВЛЯЕМ ЛОГИКУ ПАГИНАЦИИ
-                val paginationState = currentState.data // 7. Получаем PaginationState
-                val animeList = paginationState.items   // 8. Получаем список из него
+                val paginationState = currentState.data
+                val animeList = paginationState.items
 
                 LazyVerticalGrid(
-                    state = listState, // 9. ДОБАВЛЕНО: Передаем состояние грида
+                    state = listState,
                     columns = GridCells.Fixed(2),
                     contentPadding = PaddingValues(
                         start = 8.dp,
