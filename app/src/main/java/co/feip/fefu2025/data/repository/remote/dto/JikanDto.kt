@@ -37,7 +37,10 @@ data class ImageTypeDto(
 
 
 data class GenreDto(
-    val name: String
+    val name: String,
+    val url: String,
+    @SerializedName("mal_id") val malId: Int,
+    val type: String
 )
 
 

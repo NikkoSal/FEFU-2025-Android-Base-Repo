@@ -52,7 +52,7 @@ class AnimeRepositoryImpl(
                 val anime = animeDto.toDomainModel()
                 val recommendations = recommendationsDto
                     .map { it.toDomainCardData() }
-                    .take(12)
+                    .take(10)
                 Result.success(anime.copy(recommendations = recommendations))
             }
         } catch (e: Exception) {

@@ -41,7 +41,6 @@ class MainViewModel(
                 currentPage = 1
                 _uiState.value = UiState.Loading
             } else if (currentState is UiState.Success) {
-                // Показываем нижний лоадер
                 val paginationState = currentState.data
                 _uiState.value = UiState.Success(paginationState.copy(isLoadingNextPage = true))
             }
@@ -84,7 +83,6 @@ class MainViewModel(
         loadNextPage(isInitialLoad = true)
     }
 
-    // Фабрика остается без изменений
     class Factory(private val useCase: GetAnimeListUseCase) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

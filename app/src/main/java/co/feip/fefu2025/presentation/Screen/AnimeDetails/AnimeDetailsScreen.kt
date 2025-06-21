@@ -46,7 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-
+import co.feip.fefu2025.utils.genreNameToColor
 
 
 @Composable
@@ -366,9 +366,12 @@ private fun FlexBoxGenreLayout(
         factory = { ctx ->
             FlexBoxLayout(ctx).apply {
                 genreNames.forEach { genreName ->
-                    val genreColor = Genres.LIST.find { it.first == genreName }?.second
-                        ?.let { Color(it) }
-                        ?: Color.Gray
+                    val predefinedColorInt = Genres.LIST.find { it.first == genreName }?.second
+                    val genreColor = if (predefinedColorInt != null) {
+                        Color(predefinedColorInt)
+                    } else {
+                        genreNameToColor(genreName)
+                    }
 
                     addView(createGenreTextView(genreName, genreColor, ctx))
                 }
@@ -378,9 +381,12 @@ private fun FlexBoxGenreLayout(
         update = { view ->
             view.removeAllViews()
             genreNames.forEach { genreName ->
-                val genreColor = Genres.LIST.find { it.first == genreName }?.second
-                    ?.let { Color(it) }
-                    ?: Color.Gray
+                val predefinedColorInt = Genres.LIST.find { it.first == genreName }?.second
+                val genreColor = if (predefinedColorInt != null) {
+                    Color(predefinedColorInt)
+                } else {
+                    genreNameToColor(genreName)
+                }
 
                 view.addView(createGenreTextView(genreName, genreColor, context))
             }

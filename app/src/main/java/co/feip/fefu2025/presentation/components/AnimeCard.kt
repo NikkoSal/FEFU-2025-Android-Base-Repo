@@ -39,6 +39,8 @@ import co.feip.fefu2025.utils.Genres
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.flowlayout.FlowRow
+import kotlin.math.abs
+import co.feip.fefu2025.utils.genreNameToColor
 
 @Composable
 fun AnimeCard(
@@ -95,17 +97,23 @@ fun AnimeCard(
                     .padding(top = 6.dp)
             )
 
+            val chipHeight = 24.dp
+            val lineSpacing = 4.dp
             FlowRow(
                 modifier = Modifier
                     .padding(top = 6.dp)
-                    .heightIn(max = 80.dp),
+                    .heightIn(min = chipHeight * 2 + lineSpacing),
                 mainAxisSpacing = 4.dp,
                 crossAxisSpacing = 4.dp
             ) {
                 data.genreNames.forEach { genreName ->
-                    val genreColor = Genres.LIST.find { it.first == genreName }?.second?.let {
-                        Color(it)
-                    } ?: Color.Gray
+                    val predefinedColorInt = Genres.LIST.find { it.first == genreName }?.second
+
+                    val genreColor = if (predefinedColorInt != null) {
+                        Color(predefinedColorInt)
+                    } else {
+                        genreNameToColor(genreName)
+                    }
 
                     GenreChip(
                         genreName = genreName,
@@ -114,12 +122,14 @@ fun AnimeCard(
                 }
             }
 
-            RatingBar(
-                rating = data.rating,
-                modifier = Modifier
-                    .padding(top = 10.dp, bottom = 4.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
+            if (data.rating > 0.0) {
+                RatingBar(
+                    rating = data.rating,
+                    modifier = Modifier
+                        .padding(top = 10.dp, bottom = 4.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+            }
         }
     }
 }
