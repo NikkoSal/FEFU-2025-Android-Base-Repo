@@ -15,16 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import co.feip.fefu2025.presentation.details.RecommendationViewModel
+import co.feip.fefu2025.presentation.details.UiState
 import co.feip.fefu2025.presentation.components.AnimeCard
-import co.feip.fefu2025.domain.model.AnimeCardData
-import co.feip.fefu2025.presentation.details.AnimeUiState
+import co.feip.fefu2025.presentation.details.RecommendationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecommendationListScreen(
-    viewModel: RecommendationViewModel = viewModel(),
+    viewModel: RecommendationViewModel,
     onBackClick: () -> Unit,
     onAnimeClick: (Int) -> Unit
 ) {
@@ -46,22 +44,22 @@ fun RecommendationListScreen(
         }
     ) { innerPadding ->
         when (val currentState = state) {
-            is AnimeUiState.Loading -> {
+            is UiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color(0xFF4CAF50))
                 }
             }
 
-            is AnimeUiState.Error -> {
+            is UiState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Ошибка: не удалось загрузить рекомендации",
+                            text = currentState.message ?: "Ошибка: не удалось загрузить рекомендации",
                             color = Color.Red
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(
-                            onClick = { viewModel.loadRecommendations() },
+                            onClick = { viewModel.retryLoad() }, // 5. Вызываем retryLoad()
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                         ) {
                             Text("Повторить")
@@ -70,37 +68,38 @@ fun RecommendationListScreen(
                 }
             }
 
-            is AnimeUiState.Success -> {
-                val recommendations = currentState.animeList
+            is UiState.Success -> {
+                val recommendations = currentState.data
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    contentPadding = PaddingValues(
-                        start = 8.dp,
-                        end = 8.dp,
-                        top = innerPadding.calculateTopPadding() + 8.dp,
-                        bottom = innerPadding.calculateBottomPadding() + 8.dp
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White)
-                ) {
-                    items(recommendations) { anime ->
-                        AnimeCard(
-                            data = AnimeCardData(
-                                id = anime.id,
-                                imageRes = anime.imageRes,
-                                title = anime.title,
-                                genreNames = anime.genreNames,
-                                rating = anime.formattedRating.toFloatOrNull() ?: 0f,
-                                episodes = anime.formattedEpisodes?.toIntOrNull()
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onAnimeClick(anime.id) }
-                        )
+                if (recommendations.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Рекомендаций не найдено", color = Color.Gray)
+                    }
+                } else {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(
+                            start = 8.dp,
+                            end = 8.dp,
+                            top = innerPadding.calculateTopPadding() + 8.dp,
+                            bottom = innerPadding.calculateBottomPadding() + 8.dp
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        items(
+                            items = recommendations,
+                            key = { it.id }
+                        ) { anime ->
+                            AnimeCard(
+                                data = anime,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onAnimeClick(anime.id) }
+                            )
+                        }
                     }
                 }
             }

@@ -1,10 +1,10 @@
 package co.feip.fefu2025.domain.model
 
 data class AnimeCardData(
-    val id: Int? = null,
-    val imageRes: Int,
+    val id: Int,
+    val imageUrl: String?,
     val title: String,
     val genreNames: List<String>,
-    val rating: Float,
+    val rating: Double,
     val episodes: Int? = null
 )

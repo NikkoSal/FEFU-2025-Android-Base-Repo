@@ -42,19 +42,24 @@ import co.feip.fefu2025.presentation.components.AnimeCard
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import co.feip.fefu2025.presentation.details.AnimeDetailUiState
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import co.feip.fefu2025.utils.genreNameToColor
+
 
 @Composable
 fun AnimeScreen(
-    animeId: Int,
-    viewModelFactory: AnimeDetailViewModel.Factory,
+    viewModel: AnimeDetailViewModel,
     onAnimeClick: (Int) -> Unit,
     onBackClick: () -> Unit,
     onRecommendationsClick: () -> Unit
 ) {
-    val viewModel: AnimeDetailViewModel = viewModel(factory = viewModelFactory)
+
     val state = viewModel.uiState
 
-    when (state) {
+    when (val currentState = state) {
         is AnimeDetailUiState.Loading -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = Color(0xFF4CAF50))
@@ -67,7 +72,7 @@ fun AnimeScreen(
                     Text(text = "Ошибка: не удалось загрузить детали аниме", color = Color.Red)
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { viewModel.loadDetail() },
+                        onClick = { viewModel.retryLoad() },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                     ) {
                         Text("Повторить")
@@ -78,7 +83,7 @@ fun AnimeScreen(
 
         is AnimeDetailUiState.Success -> {
             AnimeDetailScreen(
-                anime = state.anime,
+                anime = currentState.anime,
                 onAnimeClick = onAnimeClick,
                 onRecommendationsClick = onRecommendationsClick,
                 onBackClick = onBackClick
@@ -129,15 +134,18 @@ fun AnimeDetailScreen(
         }
 
 
-        anime.formattedEpisodes?.let { episodes ->
+        anime.episodesCount?.let { episodes ->
             EpisodesInfo(
                 episodes = episodes,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
 
-        Image(
-            painter = painterResource(id = anime.imageRes),
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(anime.imageUrl)
+                .crossfade(true)
+                .build(),
             contentDescription = anime.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -198,7 +206,7 @@ fun AnimeDetailScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            RatingInfo(rating = anime.formattedRating)
+            RatingInfo(rating = anime.rating)
             anime.year?.let { year ->
                 YearInfo(year = year)
             }
@@ -265,7 +273,7 @@ fun AnimeDetailScreen(
                         AnimeCard(
                             data = rec,
                             modifier = Modifier
-                                .clickable { rec.id?.let { onAnimeClick(it) } }
+                                .clickable { onAnimeClick(rec.id) }
                                 .width(160.dp)
                         )
                     }
@@ -279,7 +287,7 @@ fun AnimeDetailScreen(
 
 @Composable
 private fun RatingInfo(
-    rating: String,
+    rating: Double,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -293,7 +301,7 @@ private fun RatingInfo(
             modifier = Modifier.size(20.dp)
         )
         Text(
-            text = rating,
+            text = "%.1f".format(rating),
             modifier = Modifier.padding(start = 4.dp),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Medium
@@ -315,11 +323,11 @@ private fun YearInfo(
 
 @Composable
 private fun EpisodesInfo(
-    episodes: String,
+    episodes: Int,
     modifier: Modifier = Modifier
 ) {
     InfoRow(
-        value = episodes,
+        value = "$episodes",
         label = stringResource(R.string.episodes_label),
         modifier = modifier
     )
@@ -358,9 +366,12 @@ private fun FlexBoxGenreLayout(
         factory = { ctx ->
             FlexBoxLayout(ctx).apply {
                 genreNames.forEach { genreName ->
-                    val genreColor = Genres.LIST.find { it.first == genreName }?.second
-                        ?.let { Color(it) }
-                        ?: Color.Gray
+                    val predefinedColorInt = Genres.LIST.find { it.first == genreName }?.second
+                    val genreColor = if (predefinedColorInt != null) {
+                        Color(predefinedColorInt)
+                    } else {
+                        genreNameToColor(genreName)
+                    }
 
                     addView(createGenreTextView(genreName, genreColor, ctx))
                 }
@@ -370,9 +381,12 @@ private fun FlexBoxGenreLayout(
         update = { view ->
             view.removeAllViews()
             genreNames.forEach { genreName ->
-                val genreColor = Genres.LIST.find { it.first == genreName }?.second
-                    ?.let { Color(it) }
-                    ?: Color.Gray
+                val predefinedColorInt = Genres.LIST.find { it.first == genreName }?.second
+                val genreColor = if (predefinedColorInt != null) {
+                    Color(predefinedColorInt)
+                } else {
+                    genreNameToColor(genreName)
+                }
 
                 view.addView(createGenreTextView(genreName, genreColor, context))
             }

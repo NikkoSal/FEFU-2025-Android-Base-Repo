@@ -1,11 +1,13 @@
 package co.feip.fefu2025.presentation.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,21 +25,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.flowlayout.FlowRow
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
+import co.feip.fefu2025.R
 import co.feip.fefu2025.domain.model.AnimeCardData
 import co.feip.fefu2025.utils.Genres
-import co.feip.fefu2025.R
-
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.google.accompanist.flowlayout.FlowRow
+import kotlin.math.abs
+import co.feip.fefu2025.utils.genreNameToColor
 
 @Composable
 fun AnimeCard(
@@ -78,8 +81,13 @@ fun AnimeCard(
                 )
             }
 
-            Image(
-                painter = painterResource(id = data.imageRes),
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(data.imageUrl)
+                    .crossfade(true)
+                    .placeholder(R.drawable.pic)
+                    .error(R.drawable.pic)
+                    .build(),
                 contentDescription = data.title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -89,17 +97,23 @@ fun AnimeCard(
                     .padding(top = 6.dp)
             )
 
+            val chipHeight = 24.dp
+            val lineSpacing = 4.dp
             FlowRow(
                 modifier = Modifier
                     .padding(top = 6.dp)
-                    .heightIn(max = 80.dp),
+                    .heightIn(min = chipHeight * 2 + lineSpacing),
                 mainAxisSpacing = 4.dp,
                 crossAxisSpacing = 4.dp
             ) {
                 data.genreNames.forEach { genreName ->
-                    val genreColor = Genres.LIST.find { it.first == genreName }?.second?.let {
-                        Color(it)
-                    } ?: Color.Gray
+                    val predefinedColorInt = Genres.LIST.find { it.first == genreName }?.second
+
+                    val genreColor = if (predefinedColorInt != null) {
+                        Color(predefinedColorInt)
+                    } else {
+                        genreNameToColor(genreName)
+                    }
 
                     GenreChip(
                         genreName = genreName,
@@ -108,17 +122,17 @@ fun AnimeCard(
                 }
             }
 
-            RatingBar(
-                rating = data.rating,
-                modifier = Modifier
-                    .padding(top = 10.dp, bottom = 4.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
+            if (data.rating > 0.0) {
+                RatingBar(
+                    rating = data.rating,
+                    modifier = Modifier
+                        .padding(top = 10.dp, bottom = 4.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+            }
         }
     }
 }
-
-
 
 @Composable
 private fun GenreChip(
@@ -148,7 +162,7 @@ private fun GenreChip(
 
 @Composable
 private fun RatingBar(
-    rating: Float,
+    rating: Double,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -170,22 +184,20 @@ private fun RatingBar(
     }
 }
 
-
 @Preview
 @Composable
 fun PreviewAnimeCard() {
     MaterialTheme {
         AnimeCard(
             data = AnimeCardData(
-                imageRes = R.drawable.pic,
-                title = "Вечная воля",
-                genreNames = listOf("Романтика", "Боевик", "Экшн"),
-                rating = 5f,
-                episodes = 1
-            ),
-            modifier = Modifier
-                .width(200.dp)
-                .padding(10.dp)
+
+                id = 1,
+                imageUrl = null,
+                title = "Вечная воля (Очень длинное название для теста)",
+                genreNames = listOf("Романтика", "Боевик", "Экшн", "Приключения"),
+                rating = 8.7,
+                episodes = 24
+            )
         )
     }
 }

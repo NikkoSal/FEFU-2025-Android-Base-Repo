@@ -1,39 +1,41 @@
 package co.feip.fefu2025.presentation.Screen.MainScreen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import co.feip.fefu2025.domain.model.AnimeCardData
+import co.feip.fefu2025.presentation.details.UiState
 import co.feip.fefu2025.presentation.components.AnimeCard
 import co.feip.fefu2025.presentation.details.MainViewModel
-import androidx.compose.ui.Alignment
-import co.feip.fefu2025.presentation.details.AnimeUiState
-import androidx.compose.foundation.background
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainAnimeScreen(
-    viewModel: MainViewModel = viewModel(),
+    viewModel: MainViewModel,
     onAnimeClick: (Int) -> Unit,
     onSearchClick: () -> Unit
 ) {
-    val state = viewModel.uiState
+    val state by viewModel.uiState.collectAsState()
+
+    val listState = rememberLazyGridState()
 
     Scaffold(
         topBar = {
-            Surface {
+            // ВАШ КОД TOPBAR - НЕ ТРОГАЕМ
+            Surface(shadowElevation = 4.dp) {
                 Column {
                     Box(
                         modifier = Modifier
@@ -69,7 +71,7 @@ fun MainAnimeScreen(
         }
     ) { innerPadding ->
         when (val currentState = state) {
-            is AnimeUiState.Loading -> {
+            is UiState.Loading -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -78,19 +80,19 @@ fun MainAnimeScreen(
                 }
             }
 
-            is AnimeUiState.Error -> {
+            is UiState.Error -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Ошибка: не удалось загрузить аниме",
+                            text = currentState.message ?: "Произошла неизвестная ошибка",
                             color = Color.Red
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(
-                            onClick = { viewModel.loadAnime() },
+                            onClick = { viewModel.refresh() },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                         ) {
                             Text("Повторить")
@@ -99,9 +101,13 @@ fun MainAnimeScreen(
                 }
             }
 
-            is AnimeUiState.Success -> {
-                val animeList = currentState.animeList
+            is UiState.Success -> {
+                // ВАШ КОД SUCCESS - ДОБАВЛЯЕМ ЛОГИКУ ПАГИНАЦИИ
+                val paginationState = currentState.data // 7. Получаем PaginationState
+                val animeList = paginationState.items   // 8. Получаем список из него
+
                 LazyVerticalGrid(
+                    state = listState, // 9. ДОБАВЛЕНО: Передаем состояние грида
                     columns = GridCells.Fixed(2),
                     contentPadding = PaddingValues(
                         start = 8.dp,
@@ -113,23 +119,49 @@ fun MainAnimeScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(animeList) { anime ->
+                    items(
+                        items = animeList,
+                        key = { it.id }
+                    ) { anime ->
                         AnimeCard(
-                            data = AnimeCardData(
-                                id = anime.id,
-                                imageRes = anime.imageRes,
-                                title = anime.title,
-                                genreNames = anime.genreNames,
-                                rating = anime.formattedRating.toFloatOrNull() ?: 0f,
-                                episodes = anime.formattedEpisodes?.toIntOrNull()
-                            ),
+                            data = anime,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onAnimeClick(anime.id) }
                         )
                     }
+
+                    if (paginationState.isLoadingNextPage) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = Color(0xFF4CAF50))
+                            }
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    val shouldLoadMore = remember {
+        derivedStateOf {
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            if (totalItems == 0) return@derivedStateOf false
+            val lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
+            lastVisibleItemIndex >= totalItems - 2
+        }
+    }
+
+    LaunchedEffect(shouldLoadMore.value) {
+        val currentState = viewModel.uiState.value
+        if (shouldLoadMore.value && currentState is UiState.Success && !currentState.data.isLoadingNextPage && currentState.data.canLoadMore) {
+            viewModel.loadNextPage()
         }
     }
 }
